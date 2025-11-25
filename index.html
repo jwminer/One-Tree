@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Una Arbor | Tree Encyclopedia</title>
+
+    <!-- External Stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- NAVIGATION HEADER -->
+    <nav class="header-nav">
+        <div class="logo">1Arbor</div>
+        <div style="font-size: 0.9rem;">Encyclopedia of Trees</div>
+    </nav>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <div class="container">
+
+        <!-- HERO SECTION: Tree Identity (Populated by JavaScript) -->
+        <div class="tree-header">
+            <div class="tree-image-box"></div>
+            <div class="tree-info-box">
+                <h1>Loading...</h1>
+                <span class="latin-name">...</span>
+                <p>Loading tree information...</p>
+                <div class="data-grid"></div>
+            </div>
+        </div>
+
+        <!-- IDENTIFICATION SECTION: Leaf, Bark, Fruit (Populated by JavaScript) -->
+        <h2 class="section-title">Identification Features</h2>
+        <div class="id-grid">
+            <div class="id-card">
+                <img src="" alt="Leaf">
+                <strong>The Leaf</strong>
+                <p style="font-size: 0.9rem;">Loading...</p>
+            </div>
+            <div class="id-card">
+                <img src="" alt="Bark">
+                <strong>The Bark</strong>
+                <p style="font-size: 0.9rem;">Loading...</p>
+            </div>
+            <div class="id-card">
+                <img src="" alt="Fruit">
+                <strong>The Fruit</strong>
+                <p style="font-size: 0.9rem;">Loading...</p>
+            </div>
+        </div>
+
+        <!-- DANGER SECTION: Fungi Threats (Populated by JavaScript) -->
+        <div class="danger-section">
+            <p>Loading fungi information...</p>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer">
+            &copy; 2025 Una Arbor. Identification data provided for educational purposes.<br>
+            <a href="mailto:info@unaarbor.com">info@unaarbor.com</a>
+        </div>
+
+    </div>
+
+    <!-- JAVASCRIPT: Load in correct order -->
+    <script src="trees.js"></script>
+    <script src="builder.js"></script>
+    <script src="script.js"></script>
+
+</body>
+</html>

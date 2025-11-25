@@ -1,0 +1,17 @@
+# Test files
+test-validation.html
+
+# Documentation (optional - remove if you want to include)
+*.md
+
+# Node modules (if you add them later)
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+

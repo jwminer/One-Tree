@@ -5,7 +5,7 @@
 
 /* --- COLOR PALETTE --- */
 :root {
-    --bg-cream: #1E90FF;       /* TEST: BRIGHT BLUE BACKGROUND - You can't miss this! */
+    --bg-cream: #f4f1e8;       /* The "Paper" Background */
     --primary-green: #3a4d31;  /* Deep Forest Green - Main Headers */
     --accent-orange: #c25b32;  /* Burnt Orange - Buttons/Highlights */
     --danger-red: #8b2e2e;     /* Rustic Red - Fungi Warnings */

@@ -32,20 +32,25 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    height: 60px;
+    overflow: hidden;
 }
 
 .logo {
     display: flex;
     align-items: center;
     flex-shrink: 0;
+    height: 40px;
+    overflow: hidden;
 }
 
 .logo img {
-    height: 40px;
-    max-height: 40px;
-    width: auto;
-    max-width: 150px;
+    height: 40px !important;
+    max-height: 40px !important;
+    width: auto !important;
+    max-width: 150px !important;
     object-fit: contain;
+    display: block;
 }
 
 .tagline {

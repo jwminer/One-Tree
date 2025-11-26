@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>UnaArbor Admin Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f1e8;
+        }
+        .header {
+            background: #3a4d31;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 24px;
+        }
+        .logout-btn {
+            background: #c25b32;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .logout-btn:hover {
+            background: #a04a28;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 12px 24px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .tab.active {
+            background: #3a4d31;
+            color: white;
+            border-color: #3a4d31;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .card h2 {
+            color: #3a4d31;
+            margin-bottom: 20px;
+        }
+        .add-btn {
+            background: #3a4d31;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .add-btn:hover {
+            background: #2d3b26;
+        }
+        .tree-list {
+            display: grid;
+            gap: 15px;
+        }
+        .tree-item {
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .tree-info h3 {
+            color: #3a4d31;
+            margin-bottom: 5px;
+        }
+        .tree-info p {
+            color: #666;
+            font-style: italic;
+        }
+        .tree-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-edit {
+            background: #c25b32;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn-delete {
+            background: #8b2e2e;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .error {
+            background: #fee;
+            color: #c00;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; justify-content: center; align-items: flex-start; }
+        .modal {
+            background: white;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 700px;
+            margin: 40px auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        .modal-header {
+            background: #3a4d31;
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h2 { margin: 0; font-size: 20px; }
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .modal-body { padding: 25px; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #3a4d31;
+        }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            border-color: #3a4d31;
+            outline: none;
+        }
+        .form-group textarea { min-height: 80px; resize: vertical; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-section {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .form-section h3 {
+            margin: 0 0 15px 0;
+            color: #3a4d31;
+            font-size: 16px;
+            border-bottom: 2px solid #3a4d31;
+            padding-bottom: 8px;
+        }
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .btn-save {
+            background: #3a4d31;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn-save:hover { background: #2d3b26; }
+        .btn-cancel {
+            background: #ddd;
+            color: #333;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn-cancel:hover { background: #ccc; }
+        .btn-save:disabled { background: #999; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌳 UnaArbor Admin Dashboard</h1>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="container">
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('trees')">Tree Species</div>
+            <div class="tab" onclick="switchTab('fungi')">Fungi</div>
+        </div>
+
+        <div id="trees-tab" class="tab-content active">
+            <div class="card">
+                <h2>Manage Tree Species</h2>
+                <button class="add-btn" onclick="openTreeModal()">+ Add New Tree</button>
+                <div id="tree-list" class="tree-list">
+                    <div class="loading">Loading trees...</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="fungi-tab" class="tab-content">
+            <div class="card">
+                <h2>Manage Fungi</h2>
+                <button class="add-btn" onclick="openFungiModal()">+ Add New Fungus</button>
+                <div id="fungi-list" class="tree-list">
+                    <div class="loading">Loading fungi...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TREE MODAL -->
+    <div id="treeModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="treeModalTitle">Add New Tree</h2>
+                <button class="modal-close" onclick="closeTreeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="treeId">
+
+                <div class="form-section">
+                    <h3>🌳 Basic Information</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Common Name *</label>
+                            <input type="text" id="commonName" placeholder="e.g., English Oak" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Latin Name *</label>
+                            <input type="text" id="latinName" placeholder="e.g., Quercus robur" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Species Key *</label>
+                            <input type="text" id="speciesKey" placeholder="e.g., english-oak (URL-friendly)">
+                        </div>
+                        <div class="form-group">
+                            <label>Family</label>
+                            <input type="text" id="family" placeholder="e.g., Fagaceae">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Lifespan</label>
+                            <input type="text" id="lifespan" placeholder="e.g., 500-1000 Years">
+                        </div>
+                        <div class="form-group">
+                            <label>Height</label>
+                            <input type="text" id="height" placeholder="e.g., Up to 40m">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="status">
+                            <option value="Native">Native</option>
+                            <option value="Introduced">Introduced</option>
+                            <option value="Naturalised">Naturalised</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="description" placeholder="Describe the tree..."></textarea>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>📷 Images</h3>
+                    <div class="form-group">
+                        <label>Hero Image (Full Tree)</label>
+                        <input type="text" id="heroImage" placeholder="e.g., images/Oak-tree.jpg">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Leaf Image</label>
+                            <input type="text" id="leafImage" placeholder="e.g., images/Oak-leaf.jpg">
+                        </div>
+                        <div class="form-group">
+                            <label>Bark Image</label>
+                            <input type="text" id="barkImage" placeholder="e.g., images/Oak-bark.jpg">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Fruit Image</label>
+                        <input type="text" id="fruitImage" placeholder="e.g., images/Oak-fruit.jpg">
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>📝 Identification Descriptions</h3>
+                    <div class="form-group">
+                        <label>Leaf Description</label>
+                        <textarea id="leafDescription" placeholder="Describe the leaf characteristics..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Bark Description</label>
+                        <textarea id="barkDescription" placeholder="Describe the bark characteristics..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Fruit Description</label>
+                        <textarea id="fruitDescription" placeholder="Describe the fruit characteristics..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeTreeModal()">Cancel</button>
+                <button class="btn-save" id="saveTreeBtn" onclick="saveTree()">Save Tree</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FUNGI MODAL -->
+    <div id="fungiModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="fungiModalTitle">Add New Fungus</h2>
+                <button class="modal-close" onclick="closeFungiModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="fungiId">
+
+                <div class="form-section">
+                    <h3>🍄 Basic Information</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Common Name *</label>
+                            <input type="text" id="fungiCommonName" placeholder="e.g., Chicken of the Woods" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Scientific Name *</label>
+                            <input type="text" id="scientificName" placeholder="e.g., Laetiporus sulphureus" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Risk Level *</label>
+                            <select id="riskLevel" required>
+                                <option value="High Risk">High Risk</option>
+                                <option value="Moderate Risk">Moderate Risk</option>
+                                <option value="Low Risk">Low Risk</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Rot Type</label>
+                            <input type="text" id="rotType" placeholder="e.g., Brown Cubical Rot">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Associated Tree</label>
+                        <select id="treeSpeciesId">
+                            <option value="">-- Select Tree (Optional) --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>⚠️ Risk Details</h3>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="fungiDescription" placeholder="Describe the fungus..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Danger Text</label>
+                        <textarea id="dangerText" placeholder="Explain the structural danger..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Structural Risk</label>
+                        <input type="text" id="structuralRisk" placeholder="e.g., Severe - can cause sudden failure">
+                    </div>
+                    <div class="form-group">
+                        <label>Image URL</label>
+                        <input type="text" id="fungiImageUrl" placeholder="URL or path to fungus image">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeFungiModal()">Cancel</button>
+                <button class="btn-save" id="saveFungiBtn" onclick="saveFungi()">Save Fungus</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // UnaArbor Admin Dashboard
+        // Secure session with timeout
+        // ============================================================
+
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://ocyiricqofsyhzxttwcb.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jeWlyaWNxb2ZzeWh6eHR0d2NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwNzgzNzQsImV4cCI6MjA3OTY1NDM3NH0.DXy_AudnBH3Zm1rQ_1reZGxT3a0SVmgKMkDyT-krm18';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Create a separate anon client for reading data (RLS allows anon SELECT)
+        const supabaseAnon = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: { persistSession: false }
+        });
+
+        // Check authentication via Supabase session (secure server-side validation)
+        async function checkAuth() {
+            try {
+                const { data: { session }, error } = await supabase.auth.getSession();
+
+                if (error || !session) {
+                    window.location.href = 'admin.html';
+                    return false;
+                }
+
+                return true;
+            } catch (error) {
+                console.error('Auth check error:', error);
+                window.location.href = 'admin.html';
+                return false;
+            }
+        }
+
+        async function logout() {
+            try {
+                await supabase.auth.signOut();
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+            // Clear ALL Supabase data from browser storage for security
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+                const key = localStorage.key(i);
+                if (key && (key.includes('supabase') || key.includes('sb-'))) {
+                    localStorage.removeItem(key);
+                }
+            }
+            window.location.href = 'admin.html';
+        }
+
+        // Auto-logout on inactivity (30 minutes)
+        let inactivityTimer;
+        function resetInactivityTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => {
+                alert('Logged out due to inactivity.');
+                logout();
+            }, 30 * 60 * 1000); // 30 minutes
+        }
+
+        // Reset timer on user activity
+        ['click', 'keypress', 'scroll', 'mousemove'].forEach(event => {
+            document.addEventListener(event, resetInactivityTimer, { passive: true });
+        });
+        resetInactivityTimer();
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+
+        // Load trees - USING tree_species TABLE (use anon client for reading)
+        async function loadTrees() {
+            const treeList = document.getElementById('tree-list');
+            try {
+                const { data: trees, error } = await supabaseAnon
+                    .from('tree_species')
+                    .select('*')
+                    .order('common_name');
+
+                if (error) throw error;
+
+                if (!trees || trees.length === 0) {
+                    treeList.innerHTML = '<p style="color: #666;">No trees found. Add your first tree!</p>';
+                    return;
+                }
+
+                treeList.innerHTML = trees.map(tree => `
+                    <div class="tree-item">
+                        <div class="tree-info">
+                            <h3>${tree.common_name}</h3>
+                            <p><em>${tree.latin_name || ''}</em></p>
+                        </div>
+                        <div class="tree-actions">
+                            <button class="btn-edit" onclick="editTree('${tree.id}')">Edit</button>
+                            <button class="btn-delete" onclick="deleteTree('${tree.id}', '${tree.common_name}')">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                treeList.innerHTML = `<div class="error">Error loading trees: ${error.message}</div>`;
+            }
+        }
+
+        // Load fungi (use anon client for reading)
+        async function loadFungi() {
+            const fungiList = document.getElementById('fungi-list');
+            try {
+                const { data: fungi, error } = await supabaseAnon
+                    .from('fungi')
+                    .select('*')
+                    .order('common_name');
+
+                if (error) throw error;
+
+                if (!fungi || fungi.length === 0) {
+                    fungiList.innerHTML = '<p style="color: #666;">No fungi found. Add your first fungus!</p>';
+                    return;
+                }
+
+                fungiList.innerHTML = fungi.map(fungus => `
+                    <div class="tree-item">
+                        <div class="tree-info">
+                            <h3>${fungus.common_name}</h3>
+                            <p><em>${fungus.scientific_name}</em></p>
+                            <p style="color: ${fungus.risk_level === 'High Risk' ? '#d00' : '#f80'}; font-weight: bold;">
+                                ${fungus.risk_level || 'Unknown Risk'}
+                            </p>
+                        </div>
+                        <div class="tree-actions">
+                            <button class="btn-edit" onclick="editFungus('${fungus.id}')">Edit</button>
+                            <button class="btn-delete" onclick="deleteFungus('${fungus.id}', '${fungus.common_name}')">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                fungiList.innerHTML = `<div class="error">Error loading fungi: ${error.message}</div>`;
+            }
+        }
+
+        // ============================================================
+        // TREE MODAL FUNCTIONS
+        // ============================================================
+
+        function openTreeModal(tree = null) {
+            document.getElementById('treeModal').classList.add('active');
+            document.getElementById('treeModalTitle').textContent = tree ? 'Edit Tree' : 'Add New Tree';
+
+            if (tree) {
+                document.getElementById('treeId').value = tree.id;
+                document.getElementById('commonName').value = tree.common_name || '';
+                document.getElementById('latinName').value = tree.latin_name || '';
+                document.getElementById('speciesKey').value = tree.species_key || '';
+                document.getElementById('family').value = tree.family || '';
+                document.getElementById('lifespan').value = tree.lifespan || '';
+                document.getElementById('height').value = tree.height || '';
+                document.getElementById('status').value = tree.status || 'Native';
+                document.getElementById('description').value = tree.description || '';
+                document.getElementById('heroImage').value = tree.hero_image || '';
+                document.getElementById('leafImage').value = tree.leaf_image || '';
+                document.getElementById('barkImage').value = tree.bark_image || '';
+                document.getElementById('fruitImage').value = tree.fruit_image || '';
+                document.getElementById('leafDescription').value = tree.leaf_description || '';
+                document.getElementById('barkDescription').value = tree.bark_description || '';
+                document.getElementById('fruitDescription').value = tree.fruit_description || '';
+            } else {
+                clearTreeForm();
+            }
+        }
+
+        function closeTreeModal() {
+            document.getElementById('treeModal').classList.remove('active');
+            clearTreeForm();
+        }
+
+        function clearTreeForm() {
+            document.getElementById('treeId').value = '';
+            document.getElementById('commonName').value = '';
+            document.getElementById('latinName').value = '';
+            document.getElementById('speciesKey').value = '';
+            document.getElementById('family').value = '';
+            document.getElementById('lifespan').value = '';
+            document.getElementById('height').value = '';
+            document.getElementById('status').value = 'Native';
+            document.getElementById('description').value = '';
+            document.getElementById('heroImage').value = '';
+            document.getElementById('leafImage').value = '';
+            document.getElementById('barkImage').value = '';
+            document.getElementById('fruitImage').value = '';
+            document.getElementById('leafDescription').value = '';
+            document.getElementById('barkDescription').value = '';
+            document.getElementById('fruitDescription').value = '';
+        }
+
+        async function saveTree() {
+            const btn = document.getElementById('saveTreeBtn');
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+
+            const treeId = document.getElementById('treeId').value;
+            const commonName = document.getElementById('commonName').value.trim();
+            const latinName = document.getElementById('latinName').value.trim();
+
+            if (!commonName || !latinName) {
+                alert('Common Name and Latin Name are required!');
+                btn.disabled = false;
+                btn.textContent = 'Save Tree';
+                return;
+            }
+
+            // Auto-generate species_key if not provided
+            let speciesKey = document.getElementById('speciesKey').value.trim();
+            if (!speciesKey) {
+                speciesKey = commonName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+            }
+
+            const treeData = {
+                species_key: speciesKey,
+                common_name: commonName,
+                latin_name: latinName,
+                family: document.getElementById('family').value.trim() || null,
+                lifespan: document.getElementById('lifespan').value.trim() || null,
+                height: document.getElementById('height').value.trim() || null,
+                status: document.getElementById('status').value,
+                description: document.getElementById('description').value.trim() || null,
+                hero_image: document.getElementById('heroImage').value.trim() || null,
+                leaf_image: document.getElementById('leafImage').value.trim() || null,
+                bark_image: document.getElementById('barkImage').value.trim() || null,
+                fruit_image: document.getElementById('fruitImage').value.trim() || null,
+                leaf_description: document.getElementById('leafDescription').value.trim() || null,
+                bark_description: document.getElementById('barkDescription').value.trim() || null,
+                fruit_description: document.getElementById('fruitDescription').value.trim() || null,
+                updated_at: new Date().toISOString()
+            };
+
+            try {
+                let error;
+                if (treeId) {
+                    // Update existing
+                    ({ error } = await supabase.from('tree_species').update(treeData).eq('id', treeId));
+                } else {
+                    // Insert new
+                    ({ error } = await supabase.from('tree_species').insert([treeData]));
+                }
+
+                if (error) throw error;
+
+                closeTreeModal();
+                loadTrees();
+                alert(treeId ? 'Tree updated successfully!' : 'Tree added successfully!');
+            } catch (error) {
+                alert(`Error saving tree: ${error.message}`);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Save Tree';
+            }
+        }
+
+        async function editTree(id) {
+            const { data: tree, error } = await supabaseAnon.from('tree_species').select('*').eq('id', id).single();
+            if (error) {
+                alert('Error loading tree: ' + error.message);
+                return;
+            }
+            openTreeModal(tree);
+        }
+
+        async function deleteTree(id, name) {
+            if (!confirm(`Are you sure you want to delete "${name}"?\n\nThis will also delete all associated fungi.`)) return;
+
+            const { error } = await supabase.from('tree_species').delete().eq('id', id);
+            if (error) {
+                alert(`Error deleting tree: ${error.message}`);
+            } else {
+                loadTrees();
+                loadFungi(); // Reload fungi as they may have been cascade deleted
+            }
+        }
+
+        // ============================================================
+        // FUNGI MODAL FUNCTIONS
+        // ============================================================
+
+        async function openFungiModal(fungus = null) {
+            // Load trees for dropdown
+            const { data: trees } = await supabaseAnon.from('tree_species').select('id, common_name').order('common_name');
+            const select = document.getElementById('treeSpeciesId');
+            select.innerHTML = '<option value="">-- Select Tree (Optional) --</option>';
+            if (trees) {
+                trees.forEach(t => {
+                    select.innerHTML += `<option value="${t.id}">${t.common_name}</option>`;
+                });
+            }
+
+            document.getElementById('fungiModal').classList.add('active');
+            document.getElementById('fungiModalTitle').textContent = fungus ? 'Edit Fungus' : 'Add New Fungus';
+
+            if (fungus) {
+                document.getElementById('fungiId').value = fungus.id;
+                document.getElementById('fungiCommonName').value = fungus.common_name || '';
+                document.getElementById('scientificName').value = fungus.scientific_name || '';
+                document.getElementById('riskLevel').value = fungus.risk_level || 'High Risk';
+                document.getElementById('rotType').value = fungus.rot_type || '';
+                document.getElementById('treeSpeciesId').value = fungus.tree_species_id || '';
+                document.getElementById('fungiDescription').value = fungus.description || '';
+                document.getElementById('dangerText').value = fungus.danger_text || '';
+                document.getElementById('structuralRisk').value = fungus.structural_risk || '';
+                document.getElementById('fungiImageUrl').value = fungus.image_url || '';
+            } else {
+                clearFungiForm();
+            }
+        }
+
+        function closeFungiModal() {
+            document.getElementById('fungiModal').classList.remove('active');
+            clearFungiForm();
+        }
+
+        function clearFungiForm() {
+            document.getElementById('fungiId').value = '';
+            document.getElementById('fungiCommonName').value = '';
+            document.getElementById('scientificName').value = '';
+            document.getElementById('riskLevel').value = 'High Risk';
+            document.getElementById('rotType').value = '';
+            document.getElementById('treeSpeciesId').value = '';
+            document.getElementById('fungiDescription').value = '';
+            document.getElementById('dangerText').value = '';
+            document.getElementById('structuralRisk').value = '';
+            document.getElementById('fungiImageUrl').value = '';
+        }
+
+        async function saveFungi() {
+            const btn = document.getElementById('saveFungiBtn');
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+
+            const fungiId = document.getElementById('fungiId').value;
+            const commonName = document.getElementById('fungiCommonName').value.trim();
+            const scientificName = document.getElementById('scientificName').value.trim();
+            const riskLevel = document.getElementById('riskLevel').value;
+
+            if (!commonName || !scientificName || !riskLevel) {
+                alert('Common Name, Scientific Name, and Risk Level are required!');
+                btn.disabled = false;
+                btn.textContent = 'Save Fungus';
+                return;
+            }
+
+            const fungiData = {
+                common_name: commonName,
+                scientific_name: scientificName,
+                risk_level: riskLevel,
+                rot_type: document.getElementById('rotType').value.trim() || null,
+                tree_species_id: document.getElementById('treeSpeciesId').value || null,
+                description: document.getElementById('fungiDescription').value.trim() || null,
+                danger_text: document.getElementById('dangerText').value.trim() || null,
+                structural_risk: document.getElementById('structuralRisk').value.trim() || null,
+                image_url: document.getElementById('fungiImageUrl').value.trim() || null,
+                updated_at: new Date().toISOString()
+            };
+
+            try {
+                let error;
+                if (fungiId) {
+                    ({ error } = await supabase.from('fungi').update(fungiData).eq('id', fungiId));
+                } else {
+                    ({ error } = await supabase.from('fungi').insert([fungiData]));
+                }
+
+                if (error) throw error;
+
+                closeFungiModal();
+                loadFungi();
+                alert(fungiId ? 'Fungus updated successfully!' : 'Fungus added successfully!');
+            } catch (error) {
+                alert(`Error saving fungus: ${error.message}`);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Save Fungus';
+            }
+        }
+
+        async function editFungus(id) {
+            const { data: fungus, error } = await supabaseAnon.from('fungi').select('*').eq('id', id).single();
+            if (error) {
+                alert('Error loading fungus: ' + error.message);
+                return;
+            }
+            openFungiModal(fungus);
+        }
+
+        async function deleteFungus(id, name) {
+            if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
+
+            const { error } = await supabase.from('fungi').delete().eq('id', id);
+            if (error) {
+                alert(`Error deleting fungus: ${error.message}`);
+            } else {
+                loadFungi();
+            }
+        }
+
+        // ============================================================
+        // INITIALIZE
+        // ============================================================
+        (async function init() {
+            const isAuthed = await checkAuth();
+            if (isAuthed) {
+                loadTrees();
+                loadFungi();
+            }
+        })();
+    </script>
+</body>
+</html>
+

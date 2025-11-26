@@ -4,54 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Una Arbor | Tree Encyclopedia</title>
-
-    <!-- External Stylesheet -->
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
     <!-- NAVIGATION HEADER -->
     <nav class="header-nav">
-        <div class="logo">1Arbor</div>
-        <div style="font-size: 0.9rem;">Encyclopedia of Trees</div>
+        <div class="logo">🌳 UnaArbor</div>
+        <div style="font-size: 0.9rem;">Encyclopedia of Trees & Structural Threats</div>
     </nav>
 
     <!-- MAIN CONTENT CONTAINER -->
     <div class="container">
 
-        <!-- HERO SECTION: Tree Identity (Populated by JavaScript) -->
+        <!-- HERO SECTION: Tree Identity -->
         <div class="tree-header">
-            <div class="tree-image-box"></div>
+            <div class="tree-image-box" id="heroImageBox"></div>
             <div class="tree-info-box">
-                <h1>Loading...</h1>
-                <span class="latin-name">...</span>
-                <p>Loading tree information...</p>
-                <div class="data-grid"></div>
+                <h1 id="treeName">Loading...</h1>
+                <span class="latin-name" id="latinName">...</span>
+                <p id="treeDescription">Loading tree information...</p>
+                <div class="data-grid" id="dataGrid"></div>
             </div>
         </div>
 
-        <!-- IDENTIFICATION SECTION: Leaf, Bark, Fruit (Populated by JavaScript) -->
+        <!-- IDENTIFICATION SECTION -->
         <h2 class="section-title">Identification Features</h2>
         <div class="id-grid">
             <div class="id-card">
-                <img src="" alt="Leaf">
+                <img id="leafImg" src="" alt="Leaf">
                 <strong>The Leaf</strong>
-                <p style="font-size: 0.9rem;">Loading...</p>
+                <p id="leafDesc" style="font-size: 0.9rem;">Loading...</p>
             </div>
             <div class="id-card">
-                <img src="" alt="Bark">
+                <img id="barkImg" src="" alt="Bark">
                 <strong>The Bark</strong>
-                <p style="font-size: 0.9rem;">Loading...</p>
+                <p id="barkDesc" style="font-size: 0.9rem;">Loading...</p>
             </div>
             <div class="id-card">
-                <img src="" alt="Fruit">
+                <img id="fruitImg" src="" alt="Fruit">
                 <strong>The Fruit</strong>
-                <p style="font-size: 0.9rem;">Loading...</p>
+                <p id="fruitDesc" style="font-size: 0.9rem;">Loading...</p>
             </div>
         </div>
 
-        <!-- DANGER SECTION: Fungi Threats (Populated by JavaScript) -->
-        <div class="danger-section">
+        <!-- DANGER SECTION: Fungi Threats -->
+        <div class="danger-section" id="fungiSection">
             <p>Loading fungi information...</p>
         </div>
 
@@ -63,10 +62,94 @@
 
     </div>
 
-    <!-- JAVASCRIPT: Load in correct order -->
-    <script src="trees.js"></script>
-    <script src="builder.js"></script>
-    <script src="script.js"></script>
+    <script>
+        // Supabase Configuration (Public - read only via RLS)
+        const SUPABASE_URL = 'https://ocyiricqofsyhzxttwcb.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jeWlyaWNxb2ZzeWh6eHR0d2NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwNzgzNzQsImV4cCI6MjA3OTY1NDM3NH0.DXy_AudnBH3Zm1rQ_1reZGxT3a0SVmgKMkDyT-krm18';
 
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: { persistSession: false }
+        });
+
+        async function loadTree(speciesKey) {
+            try {
+                // Load tree data
+                const { data: tree, error: treeError } = await supabase
+                    .from('tree_species')
+                    .select('*')
+                    .eq('species_key', speciesKey)
+                    .single();
+
+                if (treeError) throw treeError;
+                if (!tree) throw new Error('Tree not found');
+
+                // Update page title
+                document.title = `Una Arbor | ${tree.common_name}`;
+
+                // Hero Section
+                document.getElementById('heroImageBox').style.backgroundImage = `url('${tree.hero_image || ''}')`;
+                document.getElementById('treeName').textContent = tree.common_name;
+                document.getElementById('latinName').textContent = tree.latin_name;
+                document.getElementById('treeDescription').textContent = tree.description || '';
+
+                // Data Grid
+                document.getElementById('dataGrid').innerHTML = `
+                    <div class="data-item"><strong>Family</strong><span>${tree.family || 'Unknown'}</span></div>
+                    <div class="data-item"><strong>Lifespan</strong><span>${tree.lifespan || 'Unknown'}</span></div>
+                    <div class="data-item"><strong>Height</strong><span>${tree.height || 'Unknown'}</span></div>
+                    <div class="data-item"><strong>Status</strong><span>${tree.status || 'Unknown'}</span></div>
+                `;
+
+                // Identification Cards
+                document.getElementById('leafImg').src = tree.leaf_image || '';
+                document.getElementById('leafDesc').textContent = tree.leaf_description || 'No description available.';
+                document.getElementById('barkImg').src = tree.bark_image || '';
+                document.getElementById('barkDesc').textContent = tree.bark_description || 'No description available.';
+                document.getElementById('fruitImg').src = tree.fruit_image || '';
+                document.getElementById('fruitDesc').textContent = tree.fruit_description || 'No description available.';
+
+                // Load associated fungi
+                const { data: fungi, error: fungiError } = await supabase
+                    .from('fungi')
+                    .select('*')
+                    .eq('tree_species_id', tree.id);
+
+                if (!fungiError && fungi && fungi.length > 0) {
+                    document.getElementById('fungiSection').innerHTML = `
+                        <h2 class="danger-title">⚠️ Structural Threat: Fungal Pathogens</h2>
+                        <p class="danger-intro">The following fungi pose significant structural risks to this species:</p>
+                        <div class="fungi-grid">
+                            ${fungi.map(f => `
+                                <div class="fungi-card ${f.risk_level === 'High Risk' ? 'high-risk' : 'moderate-risk'}">
+                                    <div class="fungi-image" style="background-image: url('${f.image_url || ''}')"></div>
+                                    <div class="fungi-info">
+                                        <div class="fungi-risk">${f.risk_level}</div>
+                                        <h3>${f.common_name}</h3>
+                                        <p class="fungi-scientific"><em>${f.scientific_name}</em></p>
+                                        <p class="fungi-rot">${f.rot_type || ''}</p>
+                                        <p class="fungi-danger">${f.danger_text || f.description || ''}</p>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('fungiSection').innerHTML = `
+                        <h2 class="danger-title">🍄 Associated Fungi</h2>
+                        <p>No structural threat fungi have been documented for this species yet.</p>
+                    `;
+                }
+
+            } catch (error) {
+                document.getElementById('treeName').textContent = 'Error Loading Tree';
+                document.getElementById('treeDescription').textContent = error.message;
+            }
+        }
+
+        // Get tree from URL parameter or default to english-oak
+        const urlParams = new URLSearchParams(window.location.search);
+        const treeKey = urlParams.get('tree') || 'english-oak';
+        loadTree(treeKey);
+    </script>
 </body>
 </html>

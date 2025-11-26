@@ -145,62 +145,97 @@ h1 {
 /* --- DANGER ZONE (Fungi Section) --- */
 .danger-section {
     padding: 2rem;
-    background-color: #fff5f5; /* Very subtle red tint */
+    background-color: #fff5f5;
     border-top: 4px solid var(--danger-red);
+}
+
+.danger-title {
+    color: var(--danger-red);
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.danger-intro {
+    color: var(--text-light);
+    margin-bottom: 1.5rem;
+}
+
+.fungi-grid {
+    display: grid;
+    gap: 20px;
 }
 
 .fungi-card {
     display: flex;
     background: white;
     border: 1px solid #eecaca;
-    margin-bottom: 20px;
-    border-radius: 4px;
+    border-radius: 8px;
     overflow: hidden;
     flex-wrap: wrap;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
-.fungi-img {
-    width: 150px;
+.fungi-card.high-risk {
+    border-left: 4px solid #c0392b;
+}
+
+.fungi-card.moderate-risk {
+    border-left: 4px solid #d35400;
+}
+
+.fungi-image {
+    width: 180px;
+    min-height: 150px;
     background-color: #ddd;
     background-size: cover;
     background-position: center;
 }
 
-.fungi-details {
+.fungi-info {
     padding: 20px;
     flex: 1;
+    min-width: 250px;
 }
 
-.fungi-name {
+.fungi-info h3 {
     color: var(--danger-red);
-    font-size: 1.2rem;
-    font-weight: bold;
+    font-size: 1.3rem;
+    margin: 0 0 5px 0;
     font-family: 'Georgia', serif;
 }
 
-.danger-badge {
+.fungi-scientific {
+    color: var(--text-light);
+    margin: 0 0 10px 0;
+}
+
+.fungi-risk {
     display: inline-block;
-    padding: 4px 10px;
+    padding: 4px 12px;
     border-radius: 4px;
     font-size: 0.75rem;
     font-weight: bold;
     color: white;
     text-transform: uppercase;
-    margin-left: 10px;
-}
-
-.risk-high {
-    background-color: #c0392b; /* Bright Red */
-}
-
-.risk-mod {
-    background-color: #d35400; /* Amber/Orange */
-}
-
-.rot-type {
-    font-size: 0.9rem;
-    color: var(--text-light);
     margin-bottom: 10px;
+    background-color: #c0392b;
+}
+
+.moderate-risk .fungi-risk {
+    background-color: #d35400;
+}
+
+.fungi-rot {
+    font-size: 0.9rem;
+    color: var(--primary-green);
+    font-weight: 600;
+    margin: 8px 0;
+}
+
+.fungi-danger {
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    line-height: 1.5;
 }
 
 /* --- FOOTER --- */

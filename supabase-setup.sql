@@ -43,7 +43,7 @@ CREATE TABLE fungi (
 ALTER TABLE tree_species ENABLE ROW LEVEL SECURITY;
 ALTER TABLE fungi ENABLE ROW LEVEL SECURITY;
 
--- Policies: Allow public read access
+-- Policies: Allow public read access (anon users - for public website)
 CREATE POLICY "Allow public read access on tree_species"
     ON tree_species FOR SELECT
     TO anon
@@ -52,6 +52,17 @@ CREATE POLICY "Allow public read access on tree_species"
 CREATE POLICY "Allow public read access on fungi"
     ON fungi FOR SELECT
     TO anon
+    USING (true);
+
+-- Policies: Allow authenticated users to read (needed for admin dashboard)
+CREATE POLICY "Allow authenticated read access on tree_species"
+    ON tree_species FOR SELECT
+    TO authenticated
+    USING (true);
+
+CREATE POLICY "Allow authenticated read access on fungi"
+    ON fungi FOR SELECT
+    TO authenticated
     USING (true);
 
 -- Policies: Allow authenticated users to insert/update/delete

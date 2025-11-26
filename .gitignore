@@ -1,17 +1,35 @@
+# Environment variables - NEVER commit these
+.env
+.env.local
+.env.production
+.env*.local
+*.env
+
+# API Keys and secrets
+secrets.js
+config.local.js
+
 # Test files
 test-validation.html
+test-*.html
+test-*.js
 
 # Documentation (optional - remove if you want to include)
 *.md
 
-# Node modules (if you add them later)
+# Node modules
 node_modules/
 
 # OS files
 .DS_Store
 Thumbs.db
+*.log
 
 # IDE files
 .vscode/
 .idea/
+
+# Backup files
+*.bak
+*.backup
 
